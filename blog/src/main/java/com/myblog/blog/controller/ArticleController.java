@@ -17,6 +17,8 @@ public class ArticleController {
     @Autowired
     private ArticleRepository articleRepository;
 
+    // Méthodes CRUD de base
+
     @GetMapping
     public ResponseEntity<List<Article>> getAllArticles() {
         List<Article> articles = articleRepository.findAll();
@@ -65,5 +67,43 @@ public class ArticleController {
         }
         articleRepository.delete(article);
         return ResponseEntity.noContent().build();
+    }
+
+    //Méthodes de recherche personnalisées
+
+    @GetMapping("title/{title}")
+    public ResponseEntity<List<Article>> getArticlesByTitle(@PathVariable String title) {
+        List<Article> articles = articleRepository.findByTitle(title);
+        if (articles.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(articles);
+    }
+
+    @GetMapping("content/{content}")
+    public ResponseEntity<List<Article>> getArticlesByContent(@PathVariable String content) {
+        List<Article> articles = articleRepository.findByContentContaining(content);
+        if (articles.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(articles);
+    }
+
+    @GetMapping("/created-after/{date}")
+    public ResponseEntity<List<Article>> getArticlesCreatedAfter(@PathVariable LocalDateTime date) {
+        List<Article> articles = articleRepository.findByCreatedAtAfter(date);
+        if (articles.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(articles);
+    }
+
+    @GetMapping("/latest")
+    public ResponseEntity<List<Article>> getLatestArticles() {
+        List<Article> articles = articleRepository.findTop5ByOrderByCreatedAtDesc();
+        if (articles.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(articles);
     }
 }
