@@ -1,5 +1,6 @@
 package com.myblog.blog.controller;
 
+import com.myblog.blog.dto.ArticleDTO;
 import com.myblog.blog.model.Category;
 import com.myblog.blog.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import com.myblog.blog.repository.ArticleRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/articles")
@@ -22,34 +24,70 @@ public class ArticleController {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    // Convertit une entité Article en un ArticleDTO
+    private ArticleDTO convertToDTO(Article article) {
+        ArticleDTO articleDTO = new ArticleDTO();
+        articleDTO.setId(article.getId());
+        articleDTO.setTitle(article.getTitle());
+        articleDTO.setContent(article.getContent());
+        articleDTO.setCreatedAt(article.getCreatedAt());
+        articleDTO.setUpdatedAt(article.getUpdatedAt());
+        if (article.getCategory() != null) {
+            articleDTO.setCategoryId(article.getCategory().getId());
+        }
+        return articleDTO;
+    }
+
+    // Convertit un ArticleDTO en une entité Article
+    private Article convertToEntity(ArticleDTO articleDTO) {
+        Article article = new Article();
+        article.setId(articleDTO.getId());
+        article.setTitle(articleDTO.getTitle());
+        article.setContent(articleDTO.getContent());
+        article.setCreatedAt(articleDTO.getCreatedAt());
+        article.setUpdatedAt(articleDTO.getUpdatedAt());
+        if (articleDTO.getCategoryId() != null) {
+            Category category = categoryRepository.findById(articleDTO.getCategoryId()).orElse(null);
+            article.setCategory(category);
+        }
+        return article;
+    }
+
     // Méthodes CRUD de base
 
-    @GetMapping //Méthode de lecture
-    public ResponseEntity<List<Article>> getAllArticles() {
+    // Méthode pour lister tous les articles
+    @GetMapping
+    public ResponseEntity<List<ArticleDTO>> getAllArticles() {
         List<Article> articles = articleRepository.findAll();
         if (articles.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(articles);
+        List<ArticleDTO> articleDTOs = articles.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(articleDTOs);
     }
 
-    @GetMapping("/{id}") //Méthode de lecture
-    public ResponseEntity<Article> getArticleById(@PathVariable Long id) {
+    // Méthode pour récupérer un article par son ID
+    @GetMapping("/{id}")
+    public ResponseEntity<ArticleDTO> getArticleById(@PathVariable Long id) {
         Article article = articleRepository.findById(id).orElse(null);
         if (article == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(article);
+        return ResponseEntity.ok(convertToDTO(article));
     }
 
-    @PostMapping //Méthode de création
-    public ResponseEntity<Article> createArticle(@RequestBody Article article) {
+    // Méthode pour créer un nouvel article
+    @PostMapping
+    public ResponseEntity<ArticleDTO> createArticle(@RequestBody ArticleDTO articleDTO) {
+        Article article = convertToEntity(articleDTO);
         article.setCreatedAt(LocalDateTime.now());
         article.setUpdatedAt(LocalDateTime.now());
 
         // Ajout de la catégorie
-        if (article.getCategory() != null) {
-            Category category = categoryRepository.findById(article.getCategory().getId()).orElse(null);
+        if (articleDTO.getCategoryId() != null) {
+            Category category = categoryRepository.findById(articleDTO.getCategoryId()).orElse(null);
             if (category == null) {
                 return ResponseEntity.badRequest().body(null); // Retourne une réponse 400 Bad Request si la catégorie n'est pas trouvée
             }
@@ -57,23 +95,25 @@ public class ArticleController {
         }
 
         Article savedArticle = articleRepository.save(article);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedArticle);
+        ArticleDTO savedArticleDTO = convertToDTO(savedArticle);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedArticleDTO);
     }
 
-    @PutMapping("/{id}") //Méthode de mise à jour
-    public ResponseEntity<Article> updateArticle(@PathVariable Long id, @RequestBody Article articleDetails) {
+    // Méthode pour mettre à jour un article existant
+    @PutMapping("/{id}")
+    public ResponseEntity<ArticleDTO> updateArticle(@PathVariable Long id, @RequestBody ArticleDTO articleDTO) {
         Article article = articleRepository.findById(id).orElse(null);
         if (article == null) {
             return ResponseEntity.notFound().build();
         }
 
-        article.setTitle(articleDetails.getTitle());
-        article.setContent(articleDetails.getContent());
+        article.setTitle(articleDTO.getTitle());
+        article.setContent(articleDTO.getContent());
         article.setUpdatedAt(LocalDateTime.now());
 
         // Mise à jour de la catégorie
-        if (articleDetails.getCategory() != null) {
-            Category category = categoryRepository.findById(articleDetails.getCategory().getId()).orElse(null);
+        if (articleDTO.getCategoryId() != null) {
+            Category category = categoryRepository.findById(articleDTO.getCategoryId()).orElse(null);
             if (category == null) {
                 return ResponseEntity.badRequest().body(null); // Retourne une réponse 400 Bad Request si la catégorie n'est pas trouvée
             }
@@ -81,10 +121,12 @@ public class ArticleController {
         }
 
         Article updatedArticle = articleRepository.save(article);
-        return ResponseEntity.ok(updatedArticle);
+        ArticleDTO updatedArticleDTO = convertToDTO(updatedArticle);
+        return ResponseEntity.ok(updatedArticleDTO);
     }
 
-    @DeleteMapping("/{id}") //Méthode de suppression
+    // Méthode pour supprimer un article
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteArticle(@PathVariable Long id) {
         Article article = articleRepository.findById(id).orElse(null);
         if (article == null) {
@@ -96,7 +138,8 @@ public class ArticleController {
 
     //Méthodes de recherche personnalisées
 
-    @GetMapping("title/{title}") //Méthode de recherche personnalisée par titre
+    //Méthode de recherche d'un article par titre
+    @GetMapping("title/{title}")
     public ResponseEntity<List<Article>> getArticlesByTitle(@PathVariable String title) {
         List<Article> articles = articleRepository.findByTitle(title);
         if (articles.isEmpty()) {
@@ -105,7 +148,8 @@ public class ArticleController {
         return ResponseEntity.ok(articles);
     }
 
-    @GetMapping("content/{content}") //Méthode de recherche personnalisée par contenu
+    // Méthode de recherche d'un article par contenu
+    @GetMapping("content/{content}")
     public ResponseEntity<List<Article>> getArticlesByContent(@PathVariable String content) {
         List<Article> articles = articleRepository.findByContentContaining(content);
         if (articles.isEmpty()) {
@@ -114,7 +158,8 @@ public class ArticleController {
         return ResponseEntity.ok(articles);
     }
 
-    @GetMapping("/created-after/{date}") // Méthode de recherche personnalisée par date de création
+    // Méthode de recherche des articles créés après une certaine date
+    @GetMapping("/created-after/{date}")
     public ResponseEntity<List<Article>> getArticlesCreatedAfter(@PathVariable LocalDateTime date) {
         List<Article> articles = articleRepository.findByCreatedAtAfter(date);
         if (articles.isEmpty()) {
@@ -123,7 +168,8 @@ public class ArticleController {
         return ResponseEntity.ok(articles);
     }
 
-    @GetMapping("/latest") // Méthode de recherche personnalisée pour obtenir les 5 derniers articles
+    // Méthode pour récupérer les 5 derniers articles
+    @GetMapping("/latest")
     public ResponseEntity<List<Article>> getLatestArticles() {
         List<Article> articles = articleRepository.findTop5ByOrderByCreatedAtDesc();
         if (articles.isEmpty()) {
