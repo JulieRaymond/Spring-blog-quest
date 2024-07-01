@@ -1,5 +1,6 @@
 package com.myblog.blog.controller;
 
+import com.myblog.blog.model.Category;
 import com.myblog.blog.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,16 @@ public class ArticleController {
     public ResponseEntity<Article> createArticle(@RequestBody Article article) {
         article.setCreatedAt(LocalDateTime.now());
         article.setUpdatedAt(LocalDateTime.now());
+
+        // Ajout de la catégorie
+        if (article.getCategory() != null) {
+            Category category = categoryRepository.findById(article.getCategory().getId()).orElse(null);
+            if (category == null) {
+                return ResponseEntity.badRequest().body(null); // Retourne une réponse 400 Bad Request si la catégorie n'est pas trouvée
+            }
+            article.setCategory(category);
+        }
+
         Article savedArticle = articleRepository.save(article);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedArticle);
     }
@@ -54,13 +65,23 @@ public class ArticleController {
         Article article = articleRepository.findById(id).orElse(null);
         if (article == null) {
             return ResponseEntity.notFound().build();
-        } else {
-            article.setTitle(articleDetails.getTitle());
-            article.setContent(articleDetails.getContent());
-            article.setUpdatedAt(LocalDateTime.now());
-            Article updatedArticle = articleRepository.save(article);
-            return ResponseEntity.ok(updatedArticle);
         }
+
+        article.setTitle(articleDetails.getTitle());
+        article.setContent(articleDetails.getContent());
+        article.setUpdatedAt(LocalDateTime.now());
+
+        // Mise à jour de la catégorie
+        if (articleDetails.getCategory() != null) {
+            Category category = categoryRepository.findById(articleDetails.getCategory().getId()).orElse(null);
+            if (category == null) {
+                return ResponseEntity.badRequest().body(null); // Retourne une réponse 400 Bad Request si la catégorie n'est pas trouvée
+            }
+            article.setCategory(category);
+        }
+
+        Article updatedArticle = articleRepository.save(article);
+        return ResponseEntity.ok(updatedArticle);
     }
 
     @DeleteMapping("/{id}") //Méthode de suppression
