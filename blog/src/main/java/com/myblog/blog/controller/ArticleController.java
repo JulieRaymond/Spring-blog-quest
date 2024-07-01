@@ -1,5 +1,6 @@
 package com.myblog.blog.controller;
 
+import com.myblog.blog.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +18,12 @@ public class ArticleController {
     @Autowired
     private ArticleRepository articleRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     // Méthodes CRUD de base
 
-    @GetMapping
+    @GetMapping //Méthode de lecture
     public ResponseEntity<List<Article>> getAllArticles() {
         List<Article> articles = articleRepository.findAll();
         if (articles.isEmpty()) {
@@ -28,7 +32,7 @@ public class ArticleController {
         return ResponseEntity.ok(articles);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}") //Méthode de lecture
     public ResponseEntity<Article> getArticleById(@PathVariable Long id) {
         Article article = articleRepository.findById(id).orElse(null);
         if (article == null) {
@@ -37,7 +41,7 @@ public class ArticleController {
         return ResponseEntity.ok(article);
     }
 
-    @PostMapping
+    @PostMapping //Méthode de création
     public ResponseEntity<Article> createArticle(@RequestBody Article article) {
         article.setCreatedAt(LocalDateTime.now());
         article.setUpdatedAt(LocalDateTime.now());
@@ -45,7 +49,7 @@ public class ArticleController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedArticle);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}") //Méthode de mise à jour
     public ResponseEntity<Article> updateArticle(@PathVariable Long id, @RequestBody Article articleDetails) {
         Article article = articleRepository.findById(id).orElse(null);
         if (article == null) {
@@ -59,7 +63,7 @@ public class ArticleController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}") //Méthode de suppression
     public ResponseEntity<Void> deleteArticle(@PathVariable Long id) {
         Article article = articleRepository.findById(id).orElse(null);
         if (article == null) {
@@ -71,7 +75,7 @@ public class ArticleController {
 
     //Méthodes de recherche personnalisées
 
-    @GetMapping("title/{title}")
+    @GetMapping("title/{title}") //Méthode de recherche personnalisée par titre
     public ResponseEntity<List<Article>> getArticlesByTitle(@PathVariable String title) {
         List<Article> articles = articleRepository.findByTitle(title);
         if (articles.isEmpty()) {
@@ -80,7 +84,7 @@ public class ArticleController {
         return ResponseEntity.ok(articles);
     }
 
-    @GetMapping("content/{content}")
+    @GetMapping("content/{content}") //Méthode de recherche personnalisée par contenu
     public ResponseEntity<List<Article>> getArticlesByContent(@PathVariable String content) {
         List<Article> articles = articleRepository.findByContentContaining(content);
         if (articles.isEmpty()) {
@@ -89,7 +93,7 @@ public class ArticleController {
         return ResponseEntity.ok(articles);
     }
 
-    @GetMapping("/created-after/{date}")
+    @GetMapping("/created-after/{date}") // Méthode de recherche personnalisée par date de création
     public ResponseEntity<List<Article>> getArticlesCreatedAfter(@PathVariable LocalDateTime date) {
         List<Article> articles = articleRepository.findByCreatedAtAfter(date);
         if (articles.isEmpty()) {
@@ -98,7 +102,7 @@ public class ArticleController {
         return ResponseEntity.ok(articles);
     }
 
-    @GetMapping("/latest")
+    @GetMapping("/latest") // Méthode de recherche personnalisée pour obtenir les 5 derniers articles
     public ResponseEntity<List<Article>> getLatestArticles() {
         List<Article> articles = articleRepository.findTop5ByOrderByCreatedAtDesc();
         if (articles.isEmpty()) {
