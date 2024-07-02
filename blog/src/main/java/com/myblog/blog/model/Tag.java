@@ -7,13 +7,13 @@ import java.util.List;
 
 @Data
 @Entity
-public class Category {
+public class Tag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
 
-    @OneToMany(mappedBy = "category")
+    @ManyToMany(mappedBy = "tags")
     private List<Article> articles;
 }

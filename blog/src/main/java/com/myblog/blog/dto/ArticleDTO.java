@@ -1,12 +1,10 @@
 package com.myblog.blog.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Setter
-@Getter
+@Data
 public class ArticleDTO {
     private Long id;
     private String title;
