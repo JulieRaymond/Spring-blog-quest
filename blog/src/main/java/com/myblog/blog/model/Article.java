@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
@@ -21,11 +22,11 @@ public class Article {
     @JoinColumn(name = "category_id")
     private Category category;
 
-//    @ManyToMany
-//    @JoinTable(
-//            name = "article_tag",
-//            joinColumns = @JoinColumn(name = "article_id"),
-//            inverseJoinColumns = @JoinColumn(name = "tag_id")
-//    )
-//    private List<Tag> tags;
+    @ManyToMany
+    @JoinTable(
+            name = "article_tag",
+            joinColumns = @JoinColumn(name = "article_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private List<Tag> tags;
 }
