@@ -140,41 +140,53 @@ public class ArticleController {
 
     //Méthode de recherche d'un article par titre
     @GetMapping("title/{title}")
-    public ResponseEntity<List<Article>> getArticlesByTitle(@PathVariable String title) {
+    public ResponseEntity<List<ArticleDTO>> getArticlesByTitle(@PathVariable String title) {
         List<Article> articles = articleRepository.findByTitle(title);
         if (articles.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(articles);
+        List<ArticleDTO> articleDTOs = articles.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(articleDTOs);
     }
 
     // Méthode de recherche d'un article par contenu
     @GetMapping("content/{content}")
-    public ResponseEntity<List<Article>> getArticlesByContent(@PathVariable String content) {
+    public ResponseEntity<List<ArticleDTO>> getArticlesByContent(@PathVariable String content) {
         List<Article> articles = articleRepository.findByContentContaining(content);
         if (articles.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(articles);
+        List<ArticleDTO> articleDTOs = articles.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(articleDTOs);
     }
 
     // Méthode de recherche des articles créés après une certaine date
     @GetMapping("/created-after/{date}")
-    public ResponseEntity<List<Article>> getArticlesCreatedAfter(@PathVariable LocalDateTime date) {
+    public ResponseEntity<List<ArticleDTO>> getArticlesCreatedAfter(@PathVariable LocalDateTime date) {
         List<Article> articles = articleRepository.findByCreatedAtAfter(date);
         if (articles.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(articles);
+        List<ArticleDTO> articleDTOs = articles.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(articleDTOs);
     }
 
     // Méthode pour récupérer les 5 derniers articles
     @GetMapping("/latest")
-    public ResponseEntity<List<Article>> getLatestArticles() {
+    public ResponseEntity<List<ArticleDTO>> getLatestArticles() {
         List<Article> articles = articleRepository.findTop5ByOrderByCreatedAtDesc();
         if (articles.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(articles);
+        List<ArticleDTO> articleDTOs = articles.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(articleDTOs);
     }
 }
