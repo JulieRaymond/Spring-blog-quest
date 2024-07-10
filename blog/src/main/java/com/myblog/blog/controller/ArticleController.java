@@ -1,6 +1,7 @@
 package com.myblog.blog.controller;
 
 import com.myblog.blog.dto.ArticleDTO;
+import com.myblog.blog.exception.ResourceNotFoundException;
 import com.myblog.blog.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class ArticleController {
     public ResponseEntity<ArticleDTO> getArticleById(@PathVariable Long id) {
         return articleService.getArticleById(id)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundException("L'article avec l'id " + id + " n'a pas été trouvé"));
     }
 
     @PostMapping
