@@ -5,22 +5,25 @@ import com.myblog.blog.model.Article;
 import com.myblog.blog.model.Tag;
 import com.myblog.blog.repository.ArticleRepository;
 import com.myblog.blog.repository.TagRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/tags")
 public class TagController {
 
-    @Autowired
-    private TagRepository tagRepository;
+    private final TagRepository tagRepository;
+    private final ArticleRepository articleRepository;
 
-    @Autowired
-    private ArticleRepository articleRepository;
+    public TagController(TagRepository tagRepository, ArticleRepository articleRepository) {
+        this.tagRepository = tagRepository;
+        this.articleRepository = articleRepository;
+    }
 
     @GetMapping
     public ResponseEntity<List<TagDTO>> getAllTags() {
@@ -36,10 +39,12 @@ public class TagController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TagDTO> getTagById(@PathVariable Long id) {
-        Tag tag = tagRepository.findById(id).orElse(null);
-        if (tag == null) {
+        Optional<Tag> optionalTag = tagRepository.findById(id);
+        if (optionalTag.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
+        Tag tag = optionalTag.get();
         return ResponseEntity.ok(convertToDTO(tag));
     }
 
@@ -52,10 +57,11 @@ public class TagController {
 
     @PutMapping("/{id}")
     public ResponseEntity<TagDTO> updateTag(@PathVariable Long id, @RequestBody TagDTO tagDTO) {
-        Tag tag = tagRepository.findById(id).orElse(null);
-        if (tag == null) {
+        Optional<Tag> optionalTag = tagRepository.findById(id);
+        if (optionalTag.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        Tag tag = optionalTag.get();
         tag.setName(tagDTO.getName());
         Tag updatedTag = tagRepository.save(tag);
         return ResponseEntity.ok(convertToDTO(updatedTag));
@@ -63,10 +69,11 @@ public class TagController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTag(@PathVariable Long id) {
-        Tag tag = tagRepository.findById(id).orElse(null);
-        if (tag == null) {
+        Optional<Tag> optionalTag = tagRepository.findById(id);
+        if (optionalTag.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        Tag tag = optionalTag.get();
         tagRepository.delete(tag);
         return ResponseEntity.noContent().build();
     }
@@ -92,3 +99,4 @@ public class TagController {
         return tag;
     }
 }
+
