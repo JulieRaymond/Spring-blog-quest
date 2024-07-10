@@ -29,4 +29,7 @@ public class Article {
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private List<Tag> tags;
+
+    @OneToMany(mappedBy = "article")
+    private List<ArticleAuthor> articleAuthors;
 }
