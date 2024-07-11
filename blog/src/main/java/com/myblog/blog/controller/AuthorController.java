@@ -2,6 +2,7 @@ package com.myblog.blog.controller;
 
 import com.myblog.blog.dto.AuthorDTO;
 import com.myblog.blog.service.AuthorService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,13 +36,13 @@ public class AuthorController {
     }
 
     @PostMapping
-    public ResponseEntity<AuthorDTO> createAuthor(@RequestBody AuthorDTO authorDTO) {
+    public ResponseEntity<AuthorDTO> createAuthor(@Valid @RequestBody AuthorDTO authorDTO) {
         AuthorDTO createdAuthorDTO = authorService.createAuthor(authorDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAuthorDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AuthorDTO> updateAuthor(@PathVariable Long id, @RequestBody AuthorDTO authorDTO) {
+    public ResponseEntity<AuthorDTO> updateAuthor(@PathVariable Long id, @Valid @RequestBody AuthorDTO authorDTO) {
         AuthorDTO updatedAuthorDTO = authorService.updateAuthor(id, authorDTO);
         if (updatedAuthorDTO == null) {
             return ResponseEntity.notFound().build();
